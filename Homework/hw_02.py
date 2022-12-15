@@ -11,7 +11,12 @@
 #  Прочитайте данные из файла pilot_path.json (лекция 9)
 
 # ВАШ КОД:
-...
+import json
+from pprint import pprint
+
+with open("pilot_path.json") as f:
+	json_data = json.load(f)
+#pprint(json_data)
 
 # =====================================
 # ЗАДАНИЕ 2: Расчет статистик
@@ -26,10 +31,15 @@
 # Пилоты в порядке убывания количества миссий: {'pilot3': 6, 'pilot8': 6, 'pilot6': 5, 'pilot2': 5, 'pilot7': 4, 'pilot9': 3, 'pilot5': 3, 'pilot4': 2, 'pilot1': 1}
 
 # ВАШ КОД:
-...
+mission_count_list = []
+for value in json_data.values():
+	for missions in value.values():
+		mission_count_list.append(len(missions))
+pilot_names = list(json_data.keys())
+pilot_mission_dict = dict(zip(pilot_names, mission_count_list))
+print(f"Пилоты в порядке убывания количества миссий: {dict(sorted(pilot_mission_dict.items(), key=lambda item: item[1], reverse=True))}")
 
 # подсказка: готовый код нужной вам сортировки есть здесь (Sample Solution-1:): https://www.w3resource.com/python-exercises/dictionary/python-data-type-dictionary-exercise-1.php
-print(f"Пилоты в порядке убывания количества миссий: {dict(sorted(pilot_mission_dict.items(), key=lambda item: item[1], reverse=True))}")
 
 # TODO 2-2) Получите и выведите список всех моделей дронов, которые были в файле pilot_path.json
 # Подсказка: внутри print используйте str.join(), чтобы соединить элементы списка (множества)
@@ -38,9 +48,15 @@ print(f"Пилоты в порядке убывания количества м�
 # Полеты совершались на дронах следующих моделей: DJI Mavic 2 Pro, DJI Mavic 3, DJI Inspire 2, DJI Mavic 2 Zoom, DJI Mavic 2 Enterprise Advanced
 
 # ВАШ КОД:
-...
+drone_list = []
+for values in json_data.values():
+	for missions in values.values():
+		for mission in missions:
+			drone_list.append(mission["drone"])
+drone_list = set(drone_list)
+
 # вывод результата (допишите код)
-print(f'Полеты совершались на дронах следующих моделей: {", ".join(...)}')
+print(f'Полеты совершались на дронах следующих моделей: {", ".join(drone_list)}')
 
 # TODO 2-3) Получите список миссий для каждой модели дронов, которые были в файле pilot_path.json,
 # и выведите на экран модель дрона и количество миссий, которые он отлетал
@@ -53,9 +69,15 @@ print(f'Полеты совершались на дронах следующих
 # Дрон DJI Mavic 2 Zoom отлетал 9 миссий
 
 # ВАШ КОД:
-...
+drone_missions_count = dict.fromkeys(drone_list, 0)
+for values in json_data.values():
+	for missions in values.values():
+		for mission in missions:
+			drone_missions_count[mission["drone"]] += 1
+
 # вывод результата (допишите код)
-print(f'Дрон {...} отлетал {...} миссий')
+for key, value in drone_missions_count.items():
+	print(f'Дрон {key} отлетал {value} миссий')
 
 # =====================================
 # ЗАДАНИЕ 3: Создание классов
@@ -74,13 +96,20 @@ class Aircraft:
 class UAV:
 	def __init__(self):
 		self._has_autopilot = True
-		...
+		self._missions = []
 
 	# напишите код для декоратора атрибута _missions
-	...
+	@property
+	def foo(self):
+		return self._missions
+
+	@foo.setter
+	def foo(self, new_mission):
+		self._missions = new_mission
 
 	# напишите публичный метод count_missions
-	...
+	def count_missions(self):
+		return len(self._missions)
 
 class MultirotorUAV(Aircraft, UAV):
 	def __init__(self, weight, model, brand):
