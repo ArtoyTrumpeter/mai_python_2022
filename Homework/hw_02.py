@@ -37,7 +37,7 @@ for value in json_data.values():
 		mission_count_list.append(len(missions))
 pilot_names = list(json_data.keys())
 pilot_mission_dict = dict(zip(pilot_names, mission_count_list))
-print(f"Пилоты в порядке убывания количества миссий: {dict(sorted(pilot_mission_dict.items(), key=lambda item: item[1], reverse=True))}")
+print(f"Пилоты в порядке убывания количества миссий: {dict(sorted(pilot_mission_dict.items(), key=lambda item: item[1], reverse=True))}", "\n")
 
 # подсказка: готовый код нужной вам сортировки есть здесь (Sample Solution-1:): https://www.w3resource.com/python-exercises/dictionary/python-data-type-dictionary-exercise-1.php
 
@@ -48,15 +48,14 @@ print(f"Пилоты в порядке убывания количества м�
 # Полеты совершались на дронах следующих моделей: DJI Mavic 2 Pro, DJI Mavic 3, DJI Inspire 2, DJI Mavic 2 Zoom, DJI Mavic 2 Enterprise Advanced
 
 # ВАШ КОД:
-drone_list = []
+drone_list = set()
 for values in json_data.values():
 	for missions in values.values():
 		for mission in missions:
-			drone_list.append(mission["drone"])
-drone_list = set(drone_list)
+			drone_list.add(mission["drone"])
 
 # вывод результата (допишите код)
-print(f'Полеты совершались на дронах следующих моделей: {", ".join(drone_list)}')
+print(f'Полеты совершались на дронах следующих моделей: {", ".join(drone_list)}', "\n")
 
 # TODO 2-3) Получите список миссий для каждой модели дронов, которые были в файле pilot_path.json,
 # и выведите на экран модель дрона и количество миссий, которые он отлетал
@@ -69,16 +68,16 @@ print(f'Полеты совершались на дронах следующих
 # Дрон DJI Mavic 2 Zoom отлетал 9 миссий
 
 # ВАШ КОД:
-drone_missions_count = dict.fromkeys(drone_list, 0)
-for values in json_data.values():
-	for missions in values.values():
-		for mission in missions:
-			drone_missions_count[mission["drone"]] += 1
+drone_missions_list = dict.fromkeys(drone_list, 0)
 
+for key in json_data:
+	for mission in json_data[key]["missions"]:
+		drone_missions_list[mission["drone"]] += 1
 # вывод результата (допишите код)
-for key, value in drone_missions_count.items():
-	print(f'Дрон {key} отлетал {value} миссий')
 
+for key, value in drone_missions_list.items():
+	print(f'Дрон {key} отлетал {value} миссий')
+print("\n")
 # =====================================
 # ЗАДАНИЕ 3: Создание классов
 # =====================================
@@ -100,29 +99,31 @@ class UAV:
 
 	# напишите код для декоратора атрибута _missions
 	@property
-	def foo(self):
+	def missions(self):
 		return self._missions
 
-	@foo.setter
-	def foo(self, new_mission):
-		self._missions = new_mission
+	@missions.setter
+	def missions(self, new_mission):
+		self._missions.append(new_mission)
 
 	# напишите публичный метод count_missions
 	def count_missions(self):
-		return len(self._missions)
+		return len(self.missions)
 
 class MultirotorUAV(Aircraft, UAV):
 	def __init__(self, weight, model, brand):
 		super().__init__(weight)
 		UAV.__init__(self)
 		self.__weight = weight
-		...
-
+		self.__brand = brand
+		self.__model = model
 	# напишите публичный метод get_info
-	...
+	def get_info(self):
+		return (f'масса {self.__weight}, производитель {self.__brand}, количество миссий {self.count_missions()}')
 
 	# напишите публичный метод get_model
-	...
+	def get_model(self):
+		return self.__model
 
 # =====================================
 # ЗАДАНИЕ 4: Работа с экземплярами классов
@@ -143,7 +144,16 @@ drone_catalog = {
 }
 
 # ВАШ КОД:
-...
+MultirotorUAV_list = []
+for drone in drone_list:
+	sample = MultirotorUAV(drone_catalog[drone]["weight"], drone, drone_catalog[drone]["brand"])
+	missions = []
+	for key in json_data:
+		for mission in json_data[key]["missions"]:
+			if (drone == mission["drone"]):
+				sample.missions.append(mission["mission"])
+	MultirotorUAV_list.append(sample)
+#print(MultirotorUAV_list)
 
 # TODO 4-4
 # Напишите код, который выводит информацию по заданной модели дрона. Состав информации: масса, производитель, количество отлетанных миссий
@@ -156,4 +166,6 @@ drone_catalog = {
 
 # ВАШ КОД:
 user_unput = input("Введите модель дрона (полностью) в любом регистре\n")
-...
+for drone in MultirotorUAV_list:
+	if (user_unput.lower() == drone.get_model().lower()):
+		print(f'Информация о дроне {drone.get_model()}: {drone.get_info()}')
